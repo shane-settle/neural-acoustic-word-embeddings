@@ -1,8 +1,5 @@
 #!/bin/bash
 
-#SBATCH --partition=contrib-cpu
-#SBATCH --output=logs/kaldi-%j.out
-
 # Shane Settle, settle.shane@gmail.com, 2018
 
 # This script runs code which can be found
