@@ -25,16 +25,16 @@
 #####
 nj=8  # number of jobs to run
 
-stage=3
+stage=1
 
-swbd="/share/data/lang/users/spsettle/datasets/speech/raw/switchboard/"  # local switchboard location
+swbd="/share/data/speech/Datasets/switchboard/"  # local switchboard location
 
 min_word_length=6  # minimum word length for written words
 min_audio_duration=50  # minimum audio duration for spoken words
 min_train_occurrence_count=2  # minimum number of occurrences in training set
 queries="$PWD/data/len${min_word_length}-${min_audio_duration}frames-count${min_train_occurrence_count}"
 
-convsides="/share/data/lang/users/spsettle/github/dawe/partitions"  # paritioning over conversation sides
+convsides="../partitions"  # paritioning over conversation sides
 
 #####
 
