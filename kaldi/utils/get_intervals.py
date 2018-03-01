@@ -30,7 +30,7 @@ def lookup(utterances, query_start, query_stop):
 
         if overlap_percentage > 0.9:
             sys.stdout.write("overlap percentage: %.2f.\n" % overlap_percentage)
-            utt_query_range = "%s %s" % (max(0, query_start - utt_start), min(utt_len - 1, query_stop - utt_start) - 1)
+            utt_query_range = "%s %s" % (max(0, query_start - utt_start), min(utt_len - 1, query_stop - utt_start))
             return utt, utt_query_range
 
     return None, None
