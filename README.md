@@ -29,17 +29,20 @@ Steps:
 1. Ensure access to installed dependencies.
     - Python 3.6
     - Tensorflow 1.5 (and numpy/scipy)
+    - [kaldi](https://github.com/kaldi-asr/kaldi)
     - [kaldi-io-for-python](https://github.com/vesis84/kaldi-io-for-python)
 
 2. Clone repo.
+
+3. Check that $KALDI\_ROOT variable points to the location of installed/compiled kaldi. This can be set in your ~/.bashrc or in kaldi/path.sh.
 
 3. Update run.sh:
     - set $swbd variable to your local switchboard datapath
     - set $nj to number of desired jobs (default=8)
     - set $stage to desired stage in feature creation (default=1)
-    - set $min\_word\_length to desired minimum length character sequence allowed for included words
-    - set $min\_audio\_duration to minimum audio duration (in frames) allowed for included audio
-    - set $min\_train\_occurrence\_count to limit how common training words must have been (note: this must be >= 2 or siamese training will not work)
+    - set $min\_word\_length to desired minimum length character sequence allowed for included words (default=6)
+    - set $min\_audio\_duration to minimum audio duration (in frames) allowed for included audio (default=50)
+    - set $min\_train\_occurrence\_count to limit how common training words must have been (default=2, note: this must be >= 2 or siamese training will not work)
 
 4. Run "./run.sh". Now you should have the desired features.
 
