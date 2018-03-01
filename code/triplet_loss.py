@@ -12,7 +12,7 @@ def triplet_hinge(anchor, same, diff, margin):
     return tf.maximum(0., margin + cos_sim(anchor, diff) - cos_sim(anchor, same))
 
 
-def loss(logits, same_partition, diff_partition, margin=0.3):
+def triplet_loss(logits, same_partition, diff_partition, margin=0.3):
     logits = tf.segment_mean(logits, same_partition)
     batch_size = tf.reduce_max(diff_partition) + 1
     anchor, same, diff = tf.split(logits, [batch_size, batch_size, -1])

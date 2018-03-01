@@ -1,21 +1,25 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+# --
+from os import path
 import numpy as np
 import tensorflow as tf
 from model import Model
-from data import Data
+from data import Dataset
+from average_precision import average_precision
 
-
-class DebugConfig(object):
+class Config(object):
     """Set up model for debugging."""
 
-    trainfile = "/Users/shane/GitHub/dawe/data/mc3/swbd.train.npz"
-    devfile = "/Users/shane/GitHub/dawe/data/mc3/swbd.dev.npz"
-    batch_size = 10
+    trainfile = "../kaldi/data/kamperh/train/mfcc.scp"
+    devfile = "../kaldi/data/kamperh/dev/mfcc.scp"
+    batch_size = 32
     current_epoch = 0
-    num_epochs = 10
-    max_length = 200
-    num_features = 39
+    num_epochs = 100
+    feature_dim = 39
     num_layers = 3
-    hidden_size = 128
+    hidden_size = 256
     bidirectional = True
     keep_prob = 0.7
     margin = 0.5
@@ -23,51 +27,56 @@ class DebugConfig(object):
     max_diff = 5
     lr = 0.001
     mom = 0.9
-    logdir = "/Users/shane/GitHub/dawe/logs/debug"
+    logdir = "../logs/test"
+    ckptdir = "../ckpts/test"
+    log_interval = 10
     ckpt = None
+    debugmode = True
 
 
 def main():
-    config = DebugConfig()
-    train_model = Model(is_train=True, config=config, reuse=None)
-    train_data = Data(is_train=True, datapath=config.trainfile, batch_size=config.batch_size)
+    config = Config()
 
+    train_data = Dataset(partition="train", config=config)
+    dev_data = Dataset(partition="dev", config=config)
+
+    train_model = Model(is_train=True, config=config, reuse=None)
     dev_model = Model(is_train=False, config=config, reuse=True)
-    dev_data = Data(is_train=False, datapath=config.devfile, batch_size=config.batch_size)
 
     batch_size = config.batch_size
-    current_epoch = config.current_epoch
-    num_epochs = config.num_epochs
 
     saver = tf.train.Saver()
 
     proto = tf.ConfigProto(intra_op_parallelism_threads=2)
     with tf.Session(config=proto) as sess:
-        if config.ckpt is None:  # -- initialize
-            sess.run(tf.global_variables_initializer())
-            sess.run(tf.local_variables_initializer())
-        else:  # -- or restore
-            saver.restore(sess, config.ckpt)
+        sess.run(tf.global_variables_initializer())
+        sess.run(tf.local_variables_initializer())
+
+        ckpt = tf.train.get_checkpoint_state(config.ckptdir)
+        if ckpt and ckpt.model_checkpoint_path:
+            saver.restore(sess, ckpt.model_checkpoint_path)
+            print("restored from %s" % ckpt.model_checkpoint_path)
 
         batch = 0
-        for epoch in range(current_epoch, num_epochs):
+        for epoch in range(config.current_epoch, config.num_epochs):
             print("epoch: ", epoch)
-            for index in range(0, train_data.num_examples, batch_size):
-                indices = range(index, min(index + batch_size, train_data.num_examples))
-                x, ts, same, diff = train_data.get_next(indices, max_same=config.max_same, max_diff=config.max_diff)
-                _, loss, train_summary = train_model.calculate_loss(sess, x, ts, same, diff)
-                # train_model.writer.add_summary(train_summary, batch)
-                print("loss:", loss)
+
+            losses = []
+            for x, ts, same, diff in train_data.batch(batch_size, config.max_same, config.max_diff):
+                _, loss = train_model.get_loss(sess, x, ts, same, diff)
+                losses.append(loss)
+                if batch % config.log_interval == 0:
+                    print("avg batch loss: %.4f" % np.mean(losses[-config.log_interval:]))
                 batch += 1
 
-            # for index in range(0, dev_data.num_examples, batch_size):
-            #    indices = range(index, min(index + batch_size, dev_data.num_examples))
-            #    x, ts, same_partition, diff_partition = dev_data.get_next(indices)
-            #    _, _, eval_summary = dev_model.calculate_loss(sess, x, ts, same_partition, diff_partition)
-            #    dev_model.writer.add_summary(eval_summary, batch)
+            embeddings, labels = [], []
+            for x, ts, ids in dev_data.batch(batch_size):
+                embeddings.append(dev_model.get_embeddings(sess, x, ts))
+                labels.append(ids)
+            embeddings, labels = np.concatenate(embeddings)[:15], np.concatenate(labels)[:15]
+            print("ap: %.4f" % average_precision(embeddings, labels))
 
-            # saver.save(sess, 'model', global_step=epoch)
-
+            saver.save(sess, path.join(config.ckptdir, "model"), global_step=epoch)
 
 if __name__ == "__main__":
     main()
