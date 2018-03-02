@@ -36,7 +36,7 @@ Steps:
 
 3. Check that $KALDI\_ROOT variable points to the location of installed/compiled kaldi. This can be set in your ~/.bashrc or in kaldi/path.sh.
 
-3. Update run.sh:
+3. Update kaldi/run.sh:
     - set $swbd variable to your local switchboard datapath
     - set $nj to number of desired jobs (default=8)
     - set $stage to desired stage in feature creation (default=1)
@@ -44,6 +44,6 @@ Steps:
     - set $min\_audio\_duration to minimum audio duration (in frames) allowed for included audio (default=50)
     - set $min\_train\_occurrence\_count to limit how common training words must have been (default=2, note: this must be >= 2 or siamese training will not work)
 
-4. Run "./run.sh". Now you should have the desired features.
+4. Navigate to kaldi directory and run "./run.sh". Now you should have the desired features.
 
-5. Run "python main.py". It train, evaluate, and save models along the way.
+5. Navigate to code directory and run "python main.py". This will train, evaluate, and save models.
