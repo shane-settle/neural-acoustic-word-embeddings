@@ -2,7 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 # --
-from os import path
+from os import path, makedirs
 import numpy as np
 import tensorflow as tf
 from model import Model
@@ -12,8 +12,8 @@ from average_precision import average_precision
 class Config(object):
     """Set up model for debugging."""
 
-    trainfile = "../kaldi/data/kamperh/train/mfcc.scp"
-    devfile = "../kaldi/data/kamperh/dev/mfcc.scp"
+    trainfile = "../kaldi/data/len6-50frames-count2/train/mfcc.scp"
+    devfile = "../kaldi/data/len6-50frames-count2/dev/mfcc.scp"
     batch_size = 32
     current_epoch = 0
     num_epochs = 100
@@ -32,6 +32,9 @@ class Config(object):
     log_interval = 10
     ckpt = None
     debugmode = True
+
+    makedirs(logdir, exist_ok=True)
+    makedirs(ckptdir, exist_ok=True)
 
 
 def main():
@@ -73,7 +76,7 @@ def main():
             for x, ts, ids in dev_data.batch(batch_size):
                 embeddings.append(dev_model.get_embeddings(sess, x, ts))
                 labels.append(ids)
-            embeddings, labels = np.concatenate(embeddings)[:15], np.concatenate(labels)[:15]
+            embeddings, labels = np.concatenate(embeddings), np.concatenate(labels)
             print("ap: %.4f" % average_precision(embeddings, labels))
 
             saver.save(sess, path.join(config.ckptdir, "model"), global_step=epoch)
