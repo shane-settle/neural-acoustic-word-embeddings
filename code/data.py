@@ -11,7 +11,7 @@ from kaldi_io import read_mat_scp
 class Dataset(object):
     """Creat data class."""
 
-    def __init__(self, partition, config):
+    def __init__(self, partition, config, feature_mean=None):
         """Initialize dataset."""
         self.is_train = (partition == "train")
 
@@ -26,11 +26,13 @@ class Dataset(object):
         word2id = {v: k for k, v in enumerate(uwords)}
         ids = [word2id[w] for w in words]
 
-        feature_mean, n = 0.0, 0
-        for x in data:
-            feature_mean += np.sum(x)
-            n += np.prod(x.shape)
-        self.feature_mean = feature_mean / n
+        if feature_mean is None:
+            feature_mean, n = 0.0, 0
+            for x in data:
+                feature_mean += np.sum(x)
+                n += np.prod(x.shape)
+            feature_mean /= n
+        self.feature_mean = feature_mean
 
         self.data = np.array([x - self.feature_mean for x in data])
         self.ids = np.array(ids, dtype=np.int32)

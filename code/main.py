@@ -41,7 +41,7 @@ def main():
     config = Config()
 
     train_data = Dataset(partition="train", config=config)
-    dev_data = Dataset(partition="dev", config=config)
+    dev_data = Dataset(partition="dev", config=config, feature_mean=train_data.feature_mean)
 
     train_model = Model(is_train=True, config=config, reuse=None)
     dev_model = Model(is_train=False, config=config, reuse=True)
